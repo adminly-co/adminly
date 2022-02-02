@@ -1,84 +1,101 @@
 module DashApi
-  class ApiController < ApplicationController         
+  class ApiController < ApplicationController
 
     skip_before_action :verify_authenticity_token
 
-    before_action :parse_query_params
-    before_action :load_dash_table 
+    before_action :parse_query_params, except: [:query]
+    before_action :load_dash_table, except: [:query]
 
-    def index                      
+    def index
       resources = dash_scope
-      authorize resources, :index? 
-      @filters.each{|filter| resources = resources.where(filter) }            
-      resources = resources.pg_search(@keywords) if @keywords.present?      
-      resources = resources.order(@order) if @order.present?          
-      resources = resources.select(@select) if @select.present?    
-      
+      authorize resources, :index?
+      @filters.each{|filter| resources = resources.where(filter) }
+      resources = resources.pg_search(@keywords) if @keywords.present?
+      resources = resources.order(@order) if @order.present?
+      resources = resources.select(@select) if @select.present?
+
       if @stats.present?
         statistic, value = @stats.keys[0], @stats.values[0]&.to_sym
         resources = resources.send(statistic, value)
-      else 
+      else
         resources = resources.page(@page).per(@per_page)
-      end 
+      end
 
-      render json: { 
+      render json: {
         data: DashApi::Serializer.render(resources, includes: @includes),
         meta: {
           page: @page,
           per_page: @per_page,
           total_count: resources.respond_to?(:total_count) ? resources.total_count : 1
-        }        
+        }
       }
-    end 
+    end
 
-    def show 
+    def query
+      sql = params.require(:query).permit(:sql)[:sql]
+      rows = DashApi::RawQuery.execute(sql)
+      render json: {
+        data: rows,
+        meta: {
+          page: 1,
+          per_page: rows.length,
+          total_count: rows.length,
+        }
+      }
+    rescue DashApi::RawQuery::QueryError
+      render json: { error: 'Unpermitted query type' }, status: :unprocessable_entity
+    rescue ActiveRecord::StatementInvalid => err
+      render json: { error: 'Invalid SQL' }, status: :unprocessable_entity
+    end
+
+    def show
       resource = dash_scope.find(params[:id])
-      authorize resource, :show? 
-      render json: { 
-        data: DashApi::Serializer.render(resource, includes: @includes) 
+      authorize resource, :show?
+      render json: {
+        data: DashApi::Serializer.render(resource, includes: @includes)
       }
-    end 
+    end
 
-    def create  
+    def create
       resource = dash_scope.create!(dash_params)
-      authorize resource, :create? 
-      render json: { 
-        data: DashApi::Serializer.render(resource) 
-      }    
-    end 
+      authorize resource, :create?
+      render json: {
+        data: DashApi::Serializer.render(resource)
+      }
+    end
 
-    def update 
+    def update
       resource = dash_scope.find(params[:id])
-      authorize resource, :update? 
+      authorize resource, :update?
       if resource.update(dash_params)
-        render json: {           
+        render json: {
           data: DashApi::Serializer.render(resource)
         }
-      else 
+      else
         render json: { error: resource.errors.full_messages }, status: 422
-      end 
-    end 
+      end
+    end
 
-    def destroy  
+    def destroy
       resource = dash_scope.find(params[:id])
-      authorize resource, :destroy? 
-      resource.destroy 
-      render json: { data: DashApi::Serializer.render(resource) }    
-    end 
+      authorize resource, :destroy?
+      resource.destroy
+      render json: { data: DashApi::Serializer.render(resource) }
+    end
 
-    def update_many 
+    def update_many
       resources = dash_scope.where(id: params[:ids])
-      authorize resources, :update? 
+      authorize resources, :update?
       resources.update(dash_params)
       render json: { data: DashApi::Serializer.render(resources) }
-    end 
+    end
 
-    def delete_many       
+    def delete_many
       resources = dash_scope.where(id: params[:ids])
-      authorize resources, :destroy? 
+      authorize resources, :destroy?
       resources.destroy_all
       render json: { data: DashApi::Serializer.render(resources) }
-    end 
+    end
 
     private
 
@@ -91,20 +108,20 @@ module DashApi
       @filters = query[:filters]
       @stats = query[:stats]
       @select = query[:select_fields]
-      @includes = query[:associations]            
-    end 
+      @includes = query[:associations]
+    end
 
-    def load_dash_table 
-      @dash_table = DashTable.modelize(params[:table_name], includes: @includes)      
-    end 
+    def load_dash_table
+      @dash_table = DashTable.modelize(params[:table_name], includes: @includes)
+    end
 
-    def dash_scope 
+    def dash_scope
       policy_scope(@dash_table)
-    end 
+    end
 
     def dash_params
       params.require(params[:table_name]).permit!
-    end 
+    end
 
-  end 
-end 
+  end
+end
