@@ -1,4 +1,4 @@
-module DashApi 
+module Adminly 
   module Auth   
     extend ActiveSupport::Concern
 
@@ -12,7 +12,7 @@ module DashApi
       end 
   
       def jwt_token            
-        DashApi::JsonWebToken.decode(auth_token)         
+        Adminly::JsonWebToken.decode(auth_token)         
         rescue JWT::ExpiredSignature
           raise "JWT token has expired"
         rescue JWT::VerificationError, JWT::DecodeError

@@ -1,1 +1,1 @@
-//= link_directory ../stylesheets/dash_api.css
+//= link_directory ../stylesheets/adminly.css

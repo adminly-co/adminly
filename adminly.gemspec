@@ -1,13 +1,13 @@
-require_relative "lib/dash_api/version"
+require_relative "lib/adminly/version"
 
 Gem::Specification.new do |spec|
-  spec.name        = "dash_api"
-  spec.version     = DashApi::VERSION
+  spec.name        = "adminly"
+  spec.version     = Adminly::VERSION
   spec.authors     = ["Rami Bitar"]
   spec.email       = ["rami@skillhire.com"]
-  spec.homepage    = "https://github.com/dash-api/dash-api.git"
-  spec.summary     = "REST API for your postgres database."
-  spec.description = "Dash is a Rails engine that auto-generates a REST API for your postgres database."
+  spec.homepage    = "https://github.com/adminly-co/adminly-api.git"
+  spec.summary     = "Adminly instant REST API for your database."
+  spec.description = "Adminly is an instant admin API for your web or mobile apps."
   spec.license     = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
@@ -15,8 +15,8 @@ Gem::Specification.new do |spec|
   #spec.metadata["allowed_push_host"] = "TODO: Set to 'http://mygemserver.com'"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/dash-api/dash-api.git"
-  spec.metadata["changelog_uri"] = "https://github.com/dash-api/dash-api.git"
+  spec.metadata["source_code_uri"] = "https://github.com/adminly-co/adminly-api.git"
+  spec.metadata["changelog_uri"] = "https://github.com/adminly-co/adminly-api.git"
 
   spec.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
 

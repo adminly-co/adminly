@@ -1,4 +1,4 @@
-module DashApi
+module Adminly
   module Schema
 
     EXCLUDED_TABLES = [
@@ -16,9 +16,9 @@ module DashApi
 
     def self.table_schema(table_name)
       @tables = table_names
-      dash_table = DashTable.modelize(table_name)
-      dash_table.reset_column_information
-      dash_table.columns.map{ |column|
+      adminly_table = DashTable.modelize(table_name)
+      adminly_table.reset_column_information
+      adminly_table.columns.map{ |column|
         render_column(column)
       }
     end

@@ -1,14 +1,15 @@
-module DashApi
+module Adminly
   class ApiController < ApplicationController
 
     skip_before_action :verify_authenticity_token
 
     before_action :parse_query_params, except: [:query]
-    before_action :load_dash_table, except: [:query]
+    before_action :load_adminly_table, except: [:query]
 
     def index
-      resources = dash_scope
+      resources = adminly_scope
       authorize resources, :index?
+      
       @filters.each{|filter| resources = resources.where(filter) }
       resources = resources.pg_search(@keywords) if @keywords.present?
       resources = resources.order(@order) if @order.present?
@@ -22,7 +23,7 @@ module DashApi
       end
 
       render json: {
-        data: DashApi::Serializer.render(resources, includes: @includes),
+        data: Adminly::Serializer.render(resources, includes: @includes),
         meta: {
           page: @page,
           per_page: @per_page,
@@ -33,7 +34,7 @@ module DashApi
 
     def query
       sql = params.require(:query).permit(:sql)[:sql]
-      rows = DashApi::RawQuery.execute(sql)
+      rows = Adminly::RawQuery.execute(sql)
       render json: {
         data: rows,
         meta: {
@@ -42,34 +43,34 @@ module DashApi
           total_count: rows.length,
         }
       }
-    rescue DashApi::RawQuery::QueryError
+    rescue Adminly::RawQuery::QueryError
       render json: { error: 'Unpermitted query type' }, status: :unprocessable_entity
     rescue ActiveRecord::StatementInvalid => err
       render json: { error: 'Invalid SQL' }, status: :unprocessable_entity
     end
 
     def show
-      resource = dash_scope.find(params[:id])
+      resource = adminly_scope.find(params[:id])
       authorize resource, :show?
       render json: {
-        data: DashApi::Serializer.render(resource, includes: @includes)
+        data: Adminly::Serializer.render(resource, includes: @includes)
       }
     end
 
     def create
-      resource = dash_scope.create!(dash_params)
+      resource = adminly_scope.create!(adminly_params)
       authorize resource, :create?
       render json: {
-        data: DashApi::Serializer.render(resource)
+        data: Adminly::Serializer.render(resource)
       }
     end
 
     def update
-      resource = dash_scope.find(params[:id])
+      resource = adminly_scope.find(params[:id])
       authorize resource, :update?
-      if resource.update(dash_params)
+      if resource.update(adminly_params)
         render json: {
-          data: DashApi::Serializer.render(resource)
+          data: Adminly::Serializer.render(resource)
         }
       else
         render json: { error: resource.errors.full_messages }, status: 422
@@ -77,30 +78,30 @@ module DashApi
     end
 
     def destroy
-      resource = dash_scope.find(params[:id])
+      resource = adminly_scope.find(params[:id])
       authorize resource, :destroy?
       resource.destroy
-      render json: { data: DashApi::Serializer.render(resource) }
+      render json: { data: Adminly::Serializer.render(resource) }
     end
 
     def update_many
-      resources = dash_scope.where(id: params[:ids])
+      resources = adminly_scope.where(id: params[:ids])
       authorize resources, :update?
-      resources.update(dash_params)
-      render json: { data: DashApi::Serializer.render(resources) }
+      resources.update(adminly_params)
+      render json: { data: Adminly::Serializer.render(resources) }
     end
 
     def delete_many
-      resources = dash_scope.where(id: params[:ids])
+      resources = adminly_scope.where(id: params[:ids])
       authorize resources, :destroy?
       resources.destroy_all
-      render json: { data: DashApi::Serializer.render(resources) }
+      render json: { data: Adminly::Serializer.render(resources) }
     end
 
     private
 
     def parse_query_params
-      query = DashApi::Query.parse(params)
+      query = Adminly::Query.parse(params)
       @keywords = query[:keywords]
       @page =query[:page]
       @per_page = query[:per_page]
@@ -111,15 +112,15 @@ module DashApi
       @includes = query[:associations]
     end
 
-    def load_dash_table
-      @dash_table = DashTable.modelize(params[:table_name], includes: @includes)
+    def load_adminly_table
+      @adminly_record = AdminlyRecord.modelize(params[:table_name], includes: @includes)
     end
 
-    def dash_scope
-      policy_scope(@dash_table)
+    def adminly_scope
+      policy_scope(@adminly_record)
     end
 
-    def dash_params
+    def adminly_params
       params.require(params[:table_name]).permit!
     end
 

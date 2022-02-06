@@ -1,5 +1,5 @@
-module DashApi 
-  module DashModel 
+module Adminly 
+  module Collection 
     extend ActiveSupport::Concern
 
     class_methods do       
@@ -12,7 +12,7 @@ module DashApi
         if Object.const_defined? class_name
           klass = class_name.constantize          
         else 
-          klass = Object.const_set class_name, Class.new(DashApi::DashTable)
+          klass = Object.const_set class_name, Class.new(Adminly::DashTable)
         end 
         klass.table_name = table_name.downcase.pluralize
 

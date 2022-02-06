@@ -1,4 +1,4 @@
-module DashApi 
+module Adminly 
   module Serializer 
 
     def self.render(current_scope, includes: nil)             

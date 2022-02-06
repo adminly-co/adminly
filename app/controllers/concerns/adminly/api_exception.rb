@@ -1,4 +1,4 @@
-module DashApi 
+module Adminly 
   module ApiException  
     extend ActiveSupport::Concern
 

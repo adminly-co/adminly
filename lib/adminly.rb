@@ -1,7 +1,7 @@
-require "dash_api/version"
-require "dash_api/engine"
+require "adminly/version"
+require "adminly/engine"
 
-module DashApi    
+module Adminly    
   mattr_accessor :jwt_secret 
   mattr_accessor :disable_authentication  
 end

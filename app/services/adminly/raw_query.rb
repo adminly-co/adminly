@@ -1,4 +1,4 @@
-module DashApi
+module Adminly
   module RawQuery
     class QueryError < StandardError; end
 

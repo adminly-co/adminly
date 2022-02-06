@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    dash_api (0.0.21)
+    adminly (0.0.21)
       dotenv-rails
       jwt
       kaminari
@@ -170,7 +170,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  dash_api!
+  adminly!
   dotenv-rails
   jwt
   kaminari

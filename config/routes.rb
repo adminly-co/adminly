@@ -1,4 +1,4 @@
-DashApi::Engine.routes.draw do
+Adminly::Engine.routes.draw do
 
   root 'schema#index'
 

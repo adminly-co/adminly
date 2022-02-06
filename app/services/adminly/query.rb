@@ -1,4 +1,4 @@
-  module DashApi 
+  module Adminly 
     module Query 
 
     PER_PAGE = 20
@@ -19,7 +19,7 @@
     # perform
     # @params params 
     #
-    # DashApi::Query is a helper module which parses URL parameters 
+    # Adminly::Query is a helper module which parses URL parameters 
     # passed to a Rails Controller into attributes used to query a DashTable 
 
     def self.parse(params)       
