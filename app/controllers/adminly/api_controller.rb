@@ -4,7 +4,7 @@ module Adminly
     skip_before_action :verify_authenticity_token
 
     before_action :parse_query_params, except: [:query]
-    before_action :load_adminly_table, except: [:query]
+    before_action :load_adminly_record, except: [:query]
 
     def index
       resources = adminly_scope
@@ -112,7 +112,7 @@ module Adminly
       @includes = query[:associations]
     end
 
-    def load_adminly_table
+    def load_adminly_record
       @adminly_record = AdminlyRecord.modelize(params[:table_name], includes: @includes)
     end
 

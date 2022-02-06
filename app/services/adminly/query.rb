@@ -20,7 +20,7 @@
     # @params params 
     #
     # Adminly::Query is a helper module which parses URL parameters 
-    # passed to a Rails Controller into attributes used to query a DashTable 
+    # passed to a Rails Controller into attributes used to query a AdminlyRecord 
 
     def self.parse(params)       
       
