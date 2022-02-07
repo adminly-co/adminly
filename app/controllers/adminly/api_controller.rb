@@ -110,7 +110,7 @@ module Adminly
       @query = Adminly::QueryParams.new(params)      
     end
 
-    def load_adminly_table
+    def load_adminly_record
       @adminly_record = AdminlyRecord.modelize(
         params[:table_name], 
         includes: @query.includes
