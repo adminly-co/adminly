@@ -16,7 +16,7 @@ module Adminly
 
     def self.table_schema(table_name)
       @tables = table_names
-      adminly_table = DashTable.modelize(table_name)
+      adminly_table = AdminlyRecord.modelize(table_name)
       adminly_table.reset_column_information
       adminly_table.columns.map{ |column|
         render_column(column)

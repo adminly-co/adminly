@@ -12,7 +12,7 @@ module Adminly
         if Object.const_defined? class_name
           klass = class_name.constantize          
         else 
-          klass = Object.const_set class_name, Class.new(Adminly::DashTable)
+          klass = Object.const_set class_name, Class.new(Adminly::AdminlyRecord)
         end 
         klass.table_name = table_name.downcase.pluralize
 
@@ -37,7 +37,7 @@ module Adminly
       def build_associations(associations)
         return nil unless associations
         associations.each do |table_name|
-          klass = DashTable.modelize(table_name)
+          klass = AdminlyRecord.modelize(table_name)
           if is_singular?(table_name)
             self.belongs_to table_name.singularize.to_sym 
             klass.has_many self.table_name.pluralize.to_sym 
