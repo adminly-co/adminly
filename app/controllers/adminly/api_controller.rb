@@ -10,30 +10,36 @@ module Adminly
       resources = adminly_scope
       authorize resources, :index?
       
-      @filters.each{|filter| resources = resources.where(filter) }
-      resources = resources.pg_search(@keywords) if @keywords.present?
-      resources = resources.order(@order) if @order.present?
-      resources = resources.select(@select) if @select.present?
+      @query.filters.each do |filter| 
+        resources = resources.where(filter) 
+      end 
+      resources = resources.pg_search(@query.keywords) if @query.keywords?
+      resources = resources.order(@query.order) if @query.order?
+      resources = resources.select(@query.select) if @query.select?
 
-      if @stats.present?
-        statistic, value = @stats.keys[0], @stats.values[0]&.to_sym
+      if @query.stats?
+        statistic, value = @query.stats.keys[0], @query.stats.values[0]&.to_sym
         resources = resources.send(statistic, value)
+        total_count = 1
       else
-        resources = resources.page(@page).per(@per_page)
+        resources = resources
+          .page(@query.page)
+          .per(@query.per_page)              
+        total_count = resources.total_count
       end
 
       render json: {
-        data: Adminly::Serializer.render(resources, includes: @includes),
+        data: Adminly::Serializer.render(resources, includes: @query.includes),
         meta: {
-          page: @page,
-          per_page: @per_page,
-          total_count: resources.respond_to?(:total_count) ? resources.total_count : 1
+          page: @query.page,
+          per_page: @query.per_page,
+          total_count: total_count 
         }
       }
     end
 
     def query
-      sql = params.require(:query).permit(:sql)[:sql]
+      sql = sql_query_params[:sql]
       rows = Adminly::RawQuery.execute(sql)
       render json: {
         data: rows,
@@ -101,19 +107,14 @@ module Adminly
     private
 
     def parse_query_params
-      query = Adminly::Query.parse(params)
-      @keywords = query[:keywords]
-      @page =query[:page]
-      @per_page = query[:per_page]
-      @order = query[:order]
-      @filters = query[:filters]
-      @stats = query[:stats]
-      @select = query[:select_fields]
-      @includes = query[:associations]
+      @query = Adminly::QueryParams.new(params)      
     end
 
-    def load_adminly_record
-      @adminly_record = AdminlyRecord.modelize(params[:table_name], includes: @includes)
+    def load_adminly_table
+      @adminly_record = AdminlyRecord.modelize(
+        params[:table_name], 
+        includes: @query.includes
+      )
     end
 
     def adminly_scope
@@ -123,6 +124,12 @@ module Adminly
     def adminly_params
       params.require(params[:table_name]).permit!
     end
+
+    def sql_query_params
+      params
+        .require(:query)
+        .permit(:sql)
+    end 
 
   end
 end
