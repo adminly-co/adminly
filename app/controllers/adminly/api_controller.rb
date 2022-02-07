@@ -59,7 +59,7 @@ module Adminly
       resource = adminly_scope.find(params[:id])
       authorize resource, :show?
       render json: {
-        data: Adminly::Serializer.render(resource, includes: @includes)
+        data: Adminly::Serializer.render(resource, includes: @query.includes)
       }
     end
 
