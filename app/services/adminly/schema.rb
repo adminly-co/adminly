@@ -26,7 +26,8 @@ module Adminly
     def self.db_schema
       @tables = table_names
       schema = {
-        tables: @tables
+        tables: @tables,
+        db_type: db_type,
       }
       @tables.each do |table_name|
         schema[table_name] = table_schema(table_name)
@@ -35,11 +36,11 @@ module Adminly
     end
 
     def self.render_column(column)
-      {
+      info = {
         friendly_name: column.human_name,
         name: column.name,
         type: column.type,
-        array: column.array,
+        array: false,
         default: column.default,
         limit: column.sql_type_metadata.limit,
         precision: column.sql_type_metadata.precision,
@@ -47,6 +48,12 @@ module Adminly
         foreign_table: foreign_table(column.name),
         enum_values: enum_values(column),
       }
+
+      if db_type == 'postgresql'
+        info[:array] = column.array
+      end
+
+      info
     end
 
     def self.foreign_key?(column_name)
@@ -69,5 +76,8 @@ module Adminly
         .pluck('enumlabel')
     end
 
+    def self.db_type
+      @db_type ||= ActiveRecord::Base.connection.adapter_name.downcase
+    end
   end
 end
