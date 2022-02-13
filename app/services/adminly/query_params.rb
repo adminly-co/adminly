@@ -17,6 +17,7 @@ module Adminly
     }
 
     DATE_REGEX = /\d{4}-\d{2}-\d{2}/
+    BOOLEANS = ["true","false", "null"]
 
     # QueryParams is a ruby Class which parses URL parameters 
     # passed to a Rails Controller into attributes used to query models 
@@ -120,7 +121,17 @@ module Adminly
       field, rel, value = filter_param.split(DELIMITER)
       rel = "eq" unless OPERATORS.keys.include?(rel.to_sym)      
       operator = OPERATORS[rel.to_sym] || '='         
-      value = DateTime.parse(value) if value =~ DATE_REGEX
+      
+      if value =~ DATE_REGEX
+        value = DateTime.parse(value) 
+      end
+      
+      if BOOLEANS.include?(value.downcase)
+        value = true if value.downcase === "true"
+        value = false if value.downcase === "false"
+        value = nil if value.downcase === "null"
+      end 
+
       condition = "#{field} #{operator} ?"
       [condition, value]
     end 
