@@ -40,7 +40,7 @@ module Adminly
 
     def query
       sql = sql_query_params[:sql]
-      rows = Adminly::RawQuery.execute(sql)
+      rows = Adminly::SqlQuery.execute(sql)
       render json: {
         data: rows,
         meta: {
@@ -49,7 +49,7 @@ module Adminly
           total_count: rows.length,
         }
       }
-    rescue Adminly::RawQuery::QueryError
+    rescue Adminly::SqlQuery::QueryError
       render json: { error: 'Unpermitted query type' }, status: :unprocessable_entity
     rescue ActiveRecord::StatementInvalid => err
       render json: { error: 'Invalid SQL' }, status: :unprocessable_entity
