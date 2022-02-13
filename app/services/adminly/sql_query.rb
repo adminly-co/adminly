@@ -1,5 +1,5 @@
 module Adminly
-  module RawQuery
+  module SqlQuery
     class QueryError < StandardError; end
 
     def self.execute(sql)

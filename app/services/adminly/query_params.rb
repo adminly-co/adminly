@@ -4,7 +4,7 @@ module Adminly
     PER_PAGE = 20
 
     SORT_DIRECTIONS = ['asc', 'desc']
-
+    
     DELIMITER = ":"
 
     OPERATORS = {
@@ -15,6 +15,8 @@ module Adminly
       "eq": "=",
       "neq": "!="
     }
+
+    DATE_REGEX = /\d{4}-\d{2}-\d{2}/
 
     # QueryParams is a ruby Class which parses URL parameters 
     # passed to a Rails Controller into attributes used to query models 
@@ -117,7 +119,8 @@ module Adminly
     def format_filter(filter_param)
       field, rel, value = filter_param.split(DELIMITER)
       rel = "eq" unless OPERATORS.keys.include?(rel.to_sym)      
-      operator = OPERATORS[rel.to_sym] || '='   
+      operator = OPERATORS[rel.to_sym] || '='         
+      value = DateTime.parse(value) if value =~ DATE_REGEX
       condition = "#{field} #{operator} ?"
       [condition, value]
     end 
