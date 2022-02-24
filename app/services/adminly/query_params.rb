@@ -45,14 +45,37 @@ module Adminly
         order = { "#{sort_by}": sort_direction }
       end 
       order 
-    end 
+    end     
 
-    def includes 
-      if @params[:includes] 
-        associations = @params[:includes].split(",").map(&:strip)
+    def belongs_to      
+      if @params[:belongs_to] 
+        associations = @params[:belongs_to].split(",").map(&:strip)
       end 
       associations
     end 
+
+    def has_many 
+      if @params[:has_many]
+        associations = @params[:has_many].split(",").map(&:strip)
+      end 
+      associations
+    end 
+
+    def habtm 
+      if @params[:habtm]
+        associations = @params[:habtm].split(",").map(&:strip)
+      end 
+      associations
+    end 
+
+    def includes 
+      sanitize = proc { |rel| rel.split(":").first.downcase }
+      
+      includes_bt = belongs_to&.map(&sanitize)
+      includes_hm = has_many&.map(&sanitize)
+      includes_habtm = habtm&.map(&sanitize)      
+      [includes_bt, includes_hm, includes_habtm].flatten.compact
+    end          
 
     def filters 
       filters = []      
@@ -94,8 +117,11 @@ module Adminly
 
     def to_hash
       {
-        associations: associations,
-        filters: filters,
+        belongs_to: belongs_to,        
+        has_many: has_many,
+        habtm: habtm,
+        filters: filters,  
+        includes: includes,      
         keywords: keywords,
         order: order,
         page: page,
@@ -106,17 +132,7 @@ module Adminly
         stats: stats
       }
     end 
-
-    def page_info(paginated_scope)
-      total_count = paginated_scope.total_count
-      {
-        page: paginated_scope.current_page,
-        num_pages: (total_count / per_page).to_i + 1,
-        per_page: per_page,
-        total_count: total_count
-      }
-    end
-
+    
     def format_filter(filter_param)
       field, rel, value = filter_param.split(DELIMITER)
       rel = "eq" unless OPERATORS.keys.include?(rel.to_sym)      

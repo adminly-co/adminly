@@ -1,7 +1,7 @@
 module Adminly 
   class AdminlyRecord < ApplicationRecord   
     include PgSearch::Model 
-    include Adminly::Collection     
+    include Adminly::Record     
     
     self.abstract_class = true    
     

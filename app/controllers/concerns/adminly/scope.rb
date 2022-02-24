@@ -14,7 +14,7 @@ module Adminly
         if @adminly_query.keywords? and resources.respond_to?(:pg_search)
           resources = resources.pg_search(@adminly_query.keywords) 
         end 
-
+        resources = resources.includes(@adminly_query.includes) if @adminly_query.includes.any?
         resources = resources.order(@adminly_query.order) if @adminly_query.order?
         resources = resources.select(@adminly_query.select) if @adminly_query.select?  
         resources = resources.page(@adminly_query.page).per(@adminly_query.per_page)              
