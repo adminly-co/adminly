@@ -11,7 +11,7 @@ module Adminly
           resources = resources.where(filter) 
         end 
         
-        if @adminly_query.keywords? && resources.respond_to? :pg_search
+        if @adminly_query.keywords? and resources.respond_to?(:pg_search)
           resources = resources.pg_search(@adminly_query.keywords) 
         end 
 
