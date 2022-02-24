@@ -111,7 +111,7 @@ module Adminly
     end
 
     def load_adminly_record
-      @adminly_record = AdminlyRecord.modelize(
+      @adminly_record = AdminlyRecord.to_active_record(
         params[:table_name], 
         includes: @query.includes
       )
