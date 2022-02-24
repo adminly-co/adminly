@@ -182,7 +182,7 @@ GET /adminly/api/books?select=id,title,summary
 
 ### Full-text search 
 
-Adminly supports native full-text search capabilities for databases using PostgresSQL. You can search against all fields of a tables with the 
+Adminly supports native full-text search capabilities for databases using PostgreSQL. You can search against all fields of a tables with the 
 query syntax:
 
 ```
