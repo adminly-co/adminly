@@ -25,6 +25,7 @@ module Adminly
         end
 
         # Clear the cache to to support live migrations
+        # Todo: Uncomment if the adminly database enables live migrations
         # klass.reset_column_information
 
         # Build the model associations from the params
