@@ -182,7 +182,7 @@ GET /adminly/api/books?select=id,title,summary
 
 ### Full-text search 
 
-Adminly supports native full-text search capabilities. You can search against all fields of a tables with the 
+Adminly supports native full-text search capabilities for databases using PostgreSQL. You can search against all fields of a tables with the 
 query syntax:
 
 ```
@@ -202,54 +202,47 @@ Warning: At this time all fields are searchable and using this API which may inc
 
 Adminly takes advantage of Ruby on Rails expressive and powerful ORM, ActiveRecord, to 
 dymacally infer associations between tables and serialize them. Associations currently 
-supported are belongs_to and has_many, and this feature is only available 
-for tables that follow strict Rails naming conventions. 
+supported are belongs_to, has_many, and has_and_belongs_to_many. 
 
-To include a belongs_to table association, use the singular form of the table name:
-```
-GET /adminly/api/books?includes=author
-```
+#### Belongs to 
+To include a belongs_to table association, use the belongs_to query param:
 
-To include a has_manay table association, use the plural form of the table name:
 ```
-GET /adminly/api/books?includes=reviews 
+GET /adminly/api/books?belongs_to=<table_name>:<foreign_key>
 ```
-
-To combine associations together comma seperate the included tables:
-```
-GET /adminly/api/books?includes=author,reviews 
-```
-
-### Statistics 
-
-You can perform calculations for the `minimum`, `maximum`, `average` or `count` of any field in a table. 
-You may also combine filters or other query parameters to refine results before performing the calculation. 
-
-Maxixum
-```
-max=<field>
-```
-
-Minimum
-```
-min=<field>
-```
-
-Average
-```
-avg=<field>
-```
-
-Count
-```
-count=<field>
-```
-
 Example: 
 ```
-GET /adminly/api/books?avg=ratings 
+GET /adminly/api/books?belongs_to=authors:author_id
 ```
 
+If the foreign key is omitted, Adminly will guess the foreign key field using Rails conventions, namely 
+that the foreign key is the singular form of the table name followed by `_id`
+
+#### Has many 
+
+To include a has_many table association, use the `has_many` parameter:
+
+```
+GET /adminly/api/books?has_many=<table_name>:<foreign_key> 
+```
+
+Example
+```
+GET /adminly/api/books?has_many=reviews:book_id 
+```
+
+#### Has and belongs to many 
+
+There is also some limited-support for has_and_belongs_to_many associations using a join table with the `habtm` parameter:
+
+```
+GET /adminly/api/books?has_many=<table_name>:<join_table> 
+```
+
+Example
+```
+GET /adminly/api/books?habtm=readers:books_readers
+```
 
 ### Create
 
