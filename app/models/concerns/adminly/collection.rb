@@ -4,11 +4,11 @@ module Adminly
 
     class_methods do
 
-      def modelize(table_name, includes: nil)
+      def to_active_record(table_name, includes: nil)
 
         # Create an Abstract Active Record class and
         # assign the table name from params
-        class_name = table_name.singularize.capitalize
+        class_name = "Adminly#{table_name.singularize.capitalize}"
         if Object.const_defined? class_name
           klass = class_name.constantize
         else
@@ -24,13 +24,13 @@ module Adminly
         end
 
         # Clear the cache to to support live migrations
-        klass.reset_column_information
+        # klass.reset_column_information
 
         # We "guess" the model associations using Rails naming conventions
         klass.build_associations(includes) if includes.present?
 
+        # Define the pg_search_scope for this model
         if Adminly::Schema.db_type == 'postgresql'
-          # Define the pg_search_scope for this model
           klass.build_pg_search_scope
         end
 
@@ -40,7 +40,7 @@ module Adminly
       def build_associations(associations)
         return nil unless associations
         associations.each do |table_name|
-          klass = AdminlyRecord.modelize(table_name)
+          klass = AdminlyRecord.to_active_record(table_name)
           if is_singular?(table_name)
             self.belongs_to table_name.singularize.to_sym
             klass.has_many self.table_name.pluralize.to_sym
