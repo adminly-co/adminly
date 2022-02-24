@@ -10,7 +10,11 @@ module Adminly
         @adminly_query.filters.each do |filter| 
           resources = resources.where(filter) 
         end 
-        resources = resources.pg_search(@adminly_query.keywords) if @adminly_query.keywords?
+        
+        if @adminly_query.keywords? && resources.respond_to? :pg_search
+          resources = resources.pg_search(@adminly_query.keywords) 
+        end 
+
         resources = resources.order(@adminly_query.order) if @adminly_query.order?
         resources = resources.select(@adminly_query.select) if @adminly_query.select?  
         resources = resources.page(@adminly_query.page).per(@adminly_query.per_page)              
