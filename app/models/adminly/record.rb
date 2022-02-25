@@ -1,5 +1,5 @@
 module Adminly 
-  class AdminlyRecord < ApplicationRecord   
+  class Record < ApplicationRecord   
     include PgSearch::Model 
     
     self.abstract_class = true    
@@ -12,7 +12,7 @@ module Adminly
       if Object.const_defined? class_name
         klass = class_name.constantize
       else
-        klass = Object.const_set class_name, Class.new(Adminly::AdminlyRecord)
+        klass = Object.const_set class_name, Class.new(Adminly::Record)
       end
       #klass.table_name = table_name.downcase.pluralize
       klass.table_name = table_name.downcase
@@ -47,20 +47,20 @@ module Adminly
       belongs_to&.each do |table|         
         table_name, foreign_key = table.split(":")        
         foreign_key = table_name.singularize.downcase + '_id' if foreign_key.nil?          
-        klass = AdminlyRecord.to_active_record(table_name)         
-        self.belongs_to table_name.downcase.to_sym, class_name: klass.name, foreign_key: foreign_key
+        klass = Adminly::Record.to_active_record(table_name, has_many: ["#{self.table_name}:#{foreign_key}"])
+        self.belongs_to table_name.singularize.downcase.to_sym, class_name: klass.name, foreign_key: foreign_key        
       end 
 
       has_many&.each do |table|         
         table_name, foreign_key = table.split(":")    
         foreign_key = self.table_name.singularize.downcase + '_id' if foreign_key.nil?       
-        klass = AdminlyRecord.to_active_record(table_name)         
+        klass = Adminly::Record.to_active_record(table_name, belongs_to: ["#{self.table_name}:#{foreign_key}"])         
         self.has_many table_name.downcase.to_sym, class_name: klass.name, foreign_key: foreign_key
       end 
 
       habtm&.each do |table|         
         table_name, join_table = table.split(":")                        
-        klass = AdminlyRecord.to_active_record(table_name)         
+        klass = Adminly::Record.to_active_record(table_name)         
         self.has_and_belongs_to_many table_name.downcase.to_sym, class_name: klass.name, join_table: join_table
       end 
 

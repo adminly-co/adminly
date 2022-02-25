@@ -71,7 +71,7 @@ module Adminly
     def includes 
       sanitize = proc { |rel| rel.split(":").first.downcase }
       
-      includes_bt = belongs_to&.map(&sanitize)
+      includes_bt = belongs_to&.map(&sanitize)&.map(&:singularize)
       includes_hm = has_many&.map(&sanitize)
       includes_habtm = habtm&.map(&sanitize)      
       [includes_bt, includes_hm, includes_habtm].flatten.compact
