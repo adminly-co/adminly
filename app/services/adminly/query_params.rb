@@ -1,10 +1,10 @@
 module Adminly
-  class QueryParams 
+  class QueryParams
 
     PER_PAGE = 20
 
     SORT_DIRECTIONS = ['asc', 'desc']
-    
+
     DELIMITER = ":"
 
     OPERATORS = {
@@ -19,158 +19,185 @@ module Adminly
     DATE_REGEX = /\d{4}-\d{2}-\d{2}/
     BOOLEANS = ["true","false", "null"]
 
-    # QueryParams is a ruby Class which parses URL parameters 
-    # passed to a Rails Controller into attributes used to query models 
-    attr_accessor :params 
+    FUNCTIONS = {}
+    # these are the date parts supported by Postgres
+    [:microseconds, :milliseconds, :second, :minute, :hour, :day, :week, :month, :quarter, :year, :decade, :century, :millennium].each do |date_part|
+      FUNCTIONS[date_part.to_s] = -> (column) { "date_trunc('#{date_part}', #{column})" }
+    end
+    [:avg, :sum, :min, :max, :count].each do |func_name|
+      FUNCTIONS[func_name.to_s] = -> (column) { "#{func_name}(#{column})" }
+    end
+
+    # QueryParams is a ruby Class which parses URL parameters
+    # passed to a Rails Controller into attributes used to query models
+    attr_accessor :params
 
     def initialize(params)
-      @params = params 
-    end 
+      @params = params
+    end
 
-    def keywords 
+    def keywords
       @params[:keywords]
-    end 
+    end
 
-    def select 
+    def select
       if @params[:select]
-        select_fields = params[:select]&.split(',')
-      end 
+        select_fields = params[:select]&.split(',').map do |field|
+          field, func = field.strip.split(DELIMITER)
+          if func.present?
+            "#{FUNCTIONS[func].(field)} AS #{field}"
+          else
+            field
+          end
+        end
+      end
       select_fields
-    end 
+    end
 
-    def order 
-      if @params[:order]        
-        sort_by, sort_direction = @params[:order].split(DELIMITER)        
+    def order
+      if @params[:order]
+        sort_by, sort_direction = @params[:order].split(DELIMITER)
         sort_direction = "desc" if sort_direction and !SORT_DIRECTIONS.include?(sort_direction)
         order = { "#{sort_by}": sort_direction }
-      end 
-      order 
-    end     
+      end
+      order
+    end
 
-    def belongs_to      
-      if @params[:belongs_to] 
+    def belongs_to
+      if @params[:belongs_to]
         associations = @params[:belongs_to].split(",").map(&:strip)
-      end 
+      end
       associations
-    end 
+    end
 
-    def has_many 
+    def has_many
       if @params[:has_many]
         associations = @params[:has_many].split(",").map(&:strip)
-      end 
+      end
       associations
-    end 
+    end
 
-    def habtm 
+    def habtm
       if @params[:habtm]
         associations = @params[:habtm].split(",").map(&:strip)
-      end 
+      end
       associations
-    end 
+    end
 
-    def includes 
+    def includes
       sanitize = proc { |rel| rel.split(":").first.downcase }
-      
+
       includes_bt = belongs_to&.map(&sanitize)&.map(&:singularize)
       includes_hm = has_many&.map(&sanitize)
-      includes_habtm = habtm&.map(&sanitize)      
+      includes_habtm = habtm&.map(&sanitize)
       [includes_bt, includes_hm, includes_habtm].flatten.compact
-    end          
+    end
 
-    def filters 
-      filters = []      
+    def filters
+      filters = []
       if @params[:filters]
-        @params[:filters].split(',').each do |filter_param|             
+        @params[:filters].split(',').each do |filter_param|
           filters << format_filter(filter_param)
-        end  
+        end
       end
-      filters 
-    end  
+      filters
+    end
 
-    def stats 
+    def group_by
+      group_by = []
+      if @params[:group_by].present?
+        group_by = @params[:group_by].split(",").map do |field|
+          column, func = field.strip.split(DELIMITER)
+          func.present? ? FUNCTIONS[func].(column) : column
+        end
+      end
+      group_by
+    end
+
+    def stats
       stats = nil
       if @params[:max]
         stats = {maximum: @params[:max]}
-      end 
+      end
 
       if @params[:min]
         stats = {minimum: @params[:min]}
-      end 
+      end
 
       if @params[:avg]
         stats = {average: @params[:avg]}
-      end 
+      end
 
       if @params[:count]
         stats = {count: @params[:count]}
-      end 
-      stats 
-    end   
+      end
+      stats
+    end
 
-    def page 
-      @params[:page]&.to_i || 1 
-    end 
+    def page
+      @params[:page]&.to_i || 1
+    end
 
-    def per_page 
-      @params[:per_page]&.to_i || PER_PAGE 
-    end 
+    def per_page
+      @params[:per_page]&.to_i || PER_PAGE
+    end
 
     def to_hash
       {
-        belongs_to: belongs_to,        
+        belongs_to: belongs_to,
         has_many: has_many,
         habtm: habtm,
-        filters: filters,  
-        includes: includes,      
+        filters: filters,
+        includes: includes,
         keywords: keywords,
         order: order,
         page: page,
-        per_page: per_page, 
-        select_fields: select_fields,        
+        per_page: per_page,
+        select_fields: select_fields,
         sort_by: sort_by,
-        sort_direction: sort_direction,        
+        sort_direction: sort_direction,
         stats: stats
       }
-    end 
-    
+    end
+
     def format_filter(filter_param)
       field, rel, value = filter_param.split(DELIMITER)
-      rel = "eq" unless OPERATORS.keys.include?(rel.to_sym)      
-      operator = OPERATORS[rel.to_sym] || '='         
-      
+      rel = "eq" unless OPERATORS.keys.include?(rel.to_sym)
+      operator = OPERATORS[rel.to_sym] || '='
+
       if value =~ DATE_REGEX
-        value = DateTime.parse(value) 
+        value = DateTime.parse(value)
       end
-      
+
       if BOOLEANS.include?(value.downcase)
         value = true if value.downcase === "true"
         value = false if value.downcase === "false"
         value = nil if value.downcase === "null"
-      end 
+      end
 
       condition = "#{field} #{operator} ?"
       [condition, value]
-    end 
+    end
 
     def stats?
       stats ? true : false
-    end 
+    end
 
     def order?
       order ? true : false
-    end 
+    end
 
     def keywords?
       keywords ? true : false
-    end 
+    end
 
-    def includes? 
+    def includes?
       includes ? true : false
-    end 
+    end
 
     def select?
       select ? true : false
-    end 
+    end
 
   end
 end

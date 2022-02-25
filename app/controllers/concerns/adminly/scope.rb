@@ -1,43 +1,45 @@
-module Adminly 
-  module Scope   
+module Adminly
+  module Scope
     extend ActiveSupport::Concern
 
     included do
-      
-      before_action :parse_query_params 
 
-      def adminly_scope(resources) 
-        @adminly_query.filters.each do |filter| 
-          resources = resources.where(filter) 
-        end 
-        
+      before_action :parse_query_params
+
+      def adminly_scope(resources)
+        @adminly_query.filters.each do |filter|
+          resources = resources.where(filter)
+        end
+
         if @adminly_query.keywords? and resources.respond_to?(:pg_search)
-          resources = resources.pg_search(@adminly_query.keywords) 
-        end 
+          resources = resources.pg_search(@adminly_query.keywords)
+        end
+
+        resources = resources.group(@adminly_query.group_by) if @adminly_query.group_by.present?
         resources = resources.includes(@adminly_query.includes) if @adminly_query.includes.any?
         resources = resources.order(@adminly_query.order) if @adminly_query.order?
-        resources = resources.select(@adminly_query.select) if @adminly_query.select?  
-        resources = resources.page(@adminly_query.page).per(@adminly_query.per_page)              
+        resources = resources.select(@adminly_query.select) if @adminly_query.select?
+        resources = resources.page(@adminly_query.page).per(@adminly_query.per_page)
         resources
-      end 
+      end
 
-      def adminly_meta(resources) 
+      def adminly_meta(resources)
         {
           page: @adminly_query.page,
           per_page: @adminly_query.per_page,
-          total_count: resources.total_count 
+          total_count: resources.total_count
         }
-      end 
+      end
 
       def adminly_serialize(resources, includes: nil)
         Adminly::Serializer.render(resources, includes: includes)
-      end 
-  
-      def parse_query_params
-        @adminly_query = Adminly::QueryParams.new(params)      
       end
-  
+
+      def parse_query_params
+        @adminly_query = Adminly::QueryParams.new(params)
+      end
+
     end
 
-  end 
-end 
+  end
+end
