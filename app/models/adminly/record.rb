@@ -47,14 +47,14 @@ module Adminly
       belongs_to&.each do |table|         
         table_name, foreign_key = table.split(":")        
         foreign_key = table_name.singularize.downcase + '_id' if foreign_key.nil?          
-        klass = Adminly::Record.to_active_record(table_name, has_many: ["#{self.table_name}:#{foreign_key}"])
+        klass = Adminly::Record.to_active_record(table_name)
         self.belongs_to table_name.singularize.downcase.to_sym, class_name: klass.name, foreign_key: foreign_key        
       end 
 
       has_many&.each do |table|         
         table_name, foreign_key = table.split(":")    
         foreign_key = self.table_name.singularize.downcase + '_id' if foreign_key.nil?       
-        klass = Adminly::Record.to_active_record(table_name, belongs_to: ["#{self.table_name}:#{foreign_key}"])         
+        klass = Adminly::Record.to_active_record(table_name)         
         self.has_many table_name.downcase.to_sym, class_name: klass.name, foreign_key: foreign_key
       end 
 
