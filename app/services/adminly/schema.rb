@@ -79,5 +79,12 @@ module Adminly
     def self.db_type
       @db_type ||= ActiveRecord::Base.connection.adapter_name.downcase
     end
+
+    def self.tables_to_active_record 
+      table_names.each do |table_name|
+        AdminlyRecord.to_active_record(table_name)
+      end 
+    end 
+
   end
 end
