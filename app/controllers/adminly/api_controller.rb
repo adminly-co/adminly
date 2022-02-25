@@ -87,7 +87,7 @@ module Adminly
     private
 
     def load_adminly_record
-      @adminly_record = AdminlyRecord.to_active_record(
+      @adminly_record = Adminly::Record.to_active_record(
         params[:table_name], 
         belongs_to: @adminly_query.belongs_to,
         has_many: @adminly_query.has_many,        

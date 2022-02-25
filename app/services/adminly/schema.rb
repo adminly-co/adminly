@@ -16,7 +16,7 @@ module Adminly
 
     def self.table_schema(table_name)
       @tables = table_names
-      adminly_record = AdminlyRecord.to_active_record(table_name)
+      adminly_record = Adminly::Record.to_active_record(table_name)
       adminly_record.reset_column_information
       adminly_record.columns.map{ |column|
         render_column(column)
@@ -80,9 +80,9 @@ module Adminly
       @db_type ||= ActiveRecord::Base.connection.adapter_name.downcase
     end
 
-    def self.tables_to_active_record 
+    def self.tables_to_active_record   
       table_names.each do |table_name|
-        AdminlyRecord.to_active_record(table_name)
+        Adminly::Record.to_active_record(table_name)
       end 
     end 
 
