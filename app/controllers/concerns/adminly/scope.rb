@@ -29,7 +29,7 @@ module Adminly
         }
       end 
 
-      def adminly_serialize(resources, includes: nil)
+      def adminly_serialize(resources, includes: [])
         Adminly::Serializer.render(resources, includes: includes)
       end 
   
