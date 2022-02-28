@@ -111,26 +111,6 @@ module Adminly
       group_by
     end
 
-    def stats
-      stats = nil
-      if @params[:max]
-        stats = {maximum: @params[:max]}
-      end
-
-      if @params[:min]
-        stats = {minimum: @params[:min]}
-      end
-
-      if @params[:avg]
-        stats = {average: @params[:avg]}
-      end
-
-      if @params[:count]
-        stats = {count: @params[:count]}
-      end
-      stats
-    end
-
     def page
       @params[:page]&.to_i || 1
     end
@@ -152,8 +132,7 @@ module Adminly
         per_page: per_page,
         select_fields: select_fields,
         sort_by: sort_by,
-        sort_direction: sort_direction,
-        stats: stats
+        sort_direction: sort_direction
       }
     end
 
@@ -174,10 +153,6 @@ module Adminly
 
       condition = "#{field} #{operator} ?"
       [condition, value]
-    end
-
-    def stats?
-      stats ? true : false
     end
 
     def order?
