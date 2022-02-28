@@ -15,20 +15,28 @@ module Adminly
           resources = resources.pg_search(@adminly_query.keywords)
         end
 
-        resources = resources.group(@adminly_query.group_by) if @adminly_query.group_by.present?
         resources = resources.includes(@adminly_query.includes) if @adminly_query.includes.any?
         resources = resources.order(@adminly_query.order) if @adminly_query.order?
-        resources = resources.select(@adminly_query.select) if @adminly_query.select?
+        resources = resources.select(@adminly_query.select.map(&:first)) if @adminly_query.select?
         resources = resources.page(@adminly_query.page).per(@adminly_query.per_page)
+        resources = group_by(resources, @adminly_query.group_by)
+        resources = aggregate(resources, @adminly_query.select)
+
         resources
       end
 
       def adminly_meta(resources)
-        {
-          page: @adminly_query.page,
-          per_page: @adminly_query.per_page,
-          total_count: resources.total_count
-        }
+        if resources.is_a?(Hash)
+          # this is the case when aggregating
+          {}
+        else
+          # resources is a scope
+          {
+            page: @adminly_query.page,
+            per_page: @adminly_query.per_page,
+            total_count: resources.total_count
+          }
+        end
       end
 
       def adminly_serialize(resources, includes: nil)
@@ -39,7 +47,32 @@ module Adminly
         @adminly_query = Adminly::QueryParams.new(params)
       end
 
-    end
+      private
 
+      def group_by(resources, params)
+        return resources unless params.present?
+
+        params.reduce(resources) do |resources, grouping|
+          field, date_period = grouping
+
+          if date_period.present?
+            resources.group_by_period(date_period, field)
+          else
+            resources.group(field)
+          end
+        end
+      end
+
+      def aggregate(resources, select)
+        if select.present?
+          # `select` should only have a single field w/ aggregation present (others will be ignored)
+          params = select.find { |field, agg| agg.present? }
+          field, agg = params
+          resources.send(agg, field)
+        else
+          resources
+        end
+      end
+    end
   end
 end

@@ -19,14 +19,8 @@ module Adminly
     DATE_REGEX = /\d{4}-\d{2}-\d{2}/
     BOOLEANS = ["true","false", "null"]
 
-    FUNCTIONS = {}
-    # these are the date parts supported by Postgres
-    [:microseconds, :milliseconds, :second, :minute, :hour, :day, :week, :month, :quarter, :year, :decade, :century, :millennium].each do |date_part|
-      FUNCTIONS[date_part.to_s] = -> (column) { "date_trunc('#{date_part}', #{column})" }
-    end
-    [:avg, :sum, :min, :max, :count].each do |func_name|
-      FUNCTIONS[func_name.to_s] = -> (column) { "#{func_name}(#{column})" }
-    end
+    DATE_PERIODS = [:second, :minute, :hour, :day, :week, :month, :quarter, :year]
+    AGGREGATIONS = [:avg, :sum, :min, :max, :count]
 
     # QueryParams is a ruby Class which parses URL parameters
     # passed to a Rails Controller into attributes used to query models
@@ -42,12 +36,12 @@ module Adminly
 
     def select
       if @params[:select]
-        select_fields = params[:select]&.split(',').map do |field|
-          field, func = field.strip.split(DELIMITER)
-          if func.present?
-            "#{FUNCTIONS[func].(field)} AS #{field}"
+        select_fields = @params[:select]&.split(',').map do |field|
+          field, agg = field.strip.split(DELIMITER)
+          if agg.present? && AGGREGATIONS.include?(agg.to_sym)
+            [field, agg]
           else
-            field
+            [field]
           end
         end
       end
@@ -104,11 +98,14 @@ module Adminly
     end
 
     def group_by
-      group_by = []
       if @params[:group_by].present?
         group_by = @params[:group_by].split(",").map do |field|
-          column, func = field.strip.split(DELIMITER)
-          func.present? ? FUNCTIONS[func].(column) : column
+          field, date_period = field.strip.split(DELIMITER)
+          if date_period.present? && DATE_PERIODS.include?(date_period.to_sym)
+            [field, date_period]
+          else
+            [field]
+          end
         end
       end
       group_by
@@ -198,6 +195,5 @@ module Adminly
     def select?
       select ? true : false
     end
-
   end
 end
