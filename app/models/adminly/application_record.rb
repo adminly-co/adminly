@@ -1,3 +1,5 @@
+require "groupdate"
+
 module Adminly
   class ApplicationRecord < ActiveRecord::Base
     self.abstract_class = true

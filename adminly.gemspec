@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
   spec.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
 
   spec.add_dependency "rails", ">= 6.1.4.1"
-  
+
   spec.add_dependency "dotenv-rails"
   spec.add_dependency "jwt"
   spec.add_dependency "kaminari"
@@ -29,5 +29,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "pundit"
   spec.add_dependency "pg"
   spec.add_dependency "pg_search"
+  spec.add_dependency "groupdate"
 
 end

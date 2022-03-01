@@ -11,6 +11,7 @@ gem 'ostruct'
 gem 'pundit'
 gem 'pg'
 gem 'pg_search'
+gem 'groupdate'
 
 group :development do
   gem 'pg'
