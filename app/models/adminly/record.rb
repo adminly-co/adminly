@@ -9,12 +9,8 @@ module Adminly
       # Create an Abstract Active Record class and
       # assign the table name from params
       class_name = table_name.singularize.capitalize
-      
-      # Reset the constant to prevent ActiveRecord update errors
-      if Object.const_defined? class_name
-        Object.send(:remove_const, class_name)        
-      end 
-      
+                  
+      Object.send(:remove_const, class_name) if Object.const_defined? class_name                   
       klass = Object.const_set class_name, Class.new(Adminly::Record)
       
       #klass.table_name = table_name.downcase.pluralize
