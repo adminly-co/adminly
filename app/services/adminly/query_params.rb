@@ -19,8 +19,24 @@ module Adminly
     DATE_REGEX = /\d{4}-\d{2}-\d{2}/
     BOOLEANS = ["true","false", "null"]
 
-    DATE_PERIODS = [:second, :minute, :hour, :day, :week, :month, :quarter, :year]
-    AGGREGATIONS = [:avg, :sum, :min, :max, :count]
+    DATE_PERIODS = [
+      :second, 
+      :minute, 
+      :hour, 
+      :day, 
+      :week, 
+      :month, 
+      :quarter, 
+      :year
+    ]
+    
+    AGGREGATIONS = {
+      avg: "average",  
+      sum: "sum",
+      min: "minimum",
+      max: "maximum",
+      count: "count"
+    }   
 
     # QueryParams is a ruby Class which parses URL parameters
     # passed to a Rails Controller into attributes used to query models
@@ -34,18 +50,20 @@ module Adminly
       @params[:keywords]
     end
 
-    def select
+    def select_fields
+      select_params = []
       if @params[:select]
-        select_fields = @params[:select]&.split(',').map do |field|
+        select_params = @params[:select]&.split(',').map do |field|
           field, agg = field.strip.split(DELIMITER)
-          if agg.present? && AGGREGATIONS.include?(agg.to_sym)
-            [field, agg]
+          if agg.present? && AGGREGATIONS.keys.include?(agg.to_sym)
+            aggregation = AGGREGATIONS[agg.to_sym]
+            [field, aggregation]
           else
             [field]
           end
         end
       end
-      select_fields
+      select_params
     end
 
     def order
@@ -79,7 +97,7 @@ module Adminly
     end
 
     def includes
-      sanitize = proc { |rel| rel.split(":").first.downcase }
+      sanitize = proc { |rel| rel.split(":").first }
 
       includes_bt = belongs_to&.map(&sanitize)&.map(&:singularize)
       includes_hm = has_many&.map(&sanitize)
@@ -98,8 +116,9 @@ module Adminly
     end
 
     def group_by
+      group_params = []
       if @params[:group_by].present?
-        group_by = @params[:group_by].split(",").map do |field|
+        group_params = @params[:group_by].split(",").map do |field|
           field, date_period = field.strip.split(DELIMITER)
           if date_period.present? && DATE_PERIODS.include?(date_period.to_sym)
             [field, date_period]
@@ -108,7 +127,7 @@ module Adminly
           end
         end
       end
-      group_by
+      group_params
     end
 
     def page
@@ -125,10 +144,11 @@ module Adminly
         has_many: has_many,
         habtm: habtm,
         filters: filters,
+        group_by: group_by,
         includes: includes,
         keywords: keywords,
         order: order,
-        page: page,
+        page: page,        
         per_page: per_page,
         select_fields: select_fields,
         sort_by: sort_by,
@@ -143,9 +163,7 @@ module Adminly
 
       if value =~ DATE_REGEX
         value = DateTime.parse(value)
-      end
-
-      if BOOLEANS.include?(value.downcase)
+      elsif BOOLEANS.include?(value&.downcase)
         value = true if value.downcase === "true"
         value = false if value.downcase === "false"
         value = nil if value.downcase === "null"
@@ -168,7 +186,8 @@ module Adminly
     end
 
     def select?
-      select ? true : false
+      select_fields ? true : false
     end
+    
   end
 end

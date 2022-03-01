@@ -17,20 +17,21 @@ module Adminly
 
         resources = resources.includes(@adminly_query.includes) if @adminly_query.includes.any?
         resources = resources.order(@adminly_query.order) if @adminly_query.order?
-        resources = resources.select(@adminly_query.select.map(&:first)) if @adminly_query.select?
         resources = resources.page(@adminly_query.page).per(@adminly_query.per_page)
-        resources = group_by(resources, @adminly_query.group_by)
-        resources = aggregate(resources, @adminly_query.select)
+        
+        resources = group_by(resources, @adminly_query.group_by) if @adminly_query.group_by.any?
+        resources = aggregate(resources, @adminly_query.select_fields) if @adminly_query.select_fields.any?        
 
         resources
       end
 
       def adminly_meta(resources)
-        if resources.is_a?(Hash)
-          # this is the case when aggregating
-          {}
+        unless resources.respond_to? :total_count
+          {
+            page: @adminly_query.page,
+            per_page: @adminly_query.per_page,
+          }
         else
-          # resources is a scope
           {
             page: @adminly_query.page,
             per_page: @adminly_query.per_page,
@@ -39,7 +40,7 @@ module Adminly
         end
       end
 
-      def adminly_serialize(resources, includes: nil)
+      def adminly_serialize(resources, includes: [])
         Adminly::Serializer.render(resources, includes: includes)
       end
 
@@ -52,8 +53,8 @@ module Adminly
       def group_by(resources, params)
         return resources unless params.present?
 
-        params.reduce(resources) do |resources, grouping|
-          field, date_period = grouping
+        params.reduce(resources) do |resources, group_by_params|
+          field, date_period = group_by_params
 
           if date_period.present?
             resources.group_by_period(date_period, field)
@@ -63,16 +64,17 @@ module Adminly
         end
       end
 
-      def aggregate(resources, select)
-        if select.present?
-          # `select` should only have a single field w/ aggregation present (others will be ignored)
-          params = select.find { |field, agg| agg.present? }
-          field, agg = params
-          resources.send(agg, field)
-        else
-          resources
-        end
+      def aggregate(resources, params)
+        params.reduce(resources) do |resources, select_params|
+          field, agg = select_params
+          if agg.present?
+            resources.send(agg, field)
+          else
+            resources.select(field)
+          end 
+        end        
       end
-    end
+          
+    end    
   end
 end
