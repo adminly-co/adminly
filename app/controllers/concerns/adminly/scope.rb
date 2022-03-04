@@ -11,16 +11,24 @@ module Adminly
           resources = resources.where(filter)
         end
 
-        if @adminly_query.keywords? and resources.respond_to?(:pg_search)
-          resources = resources.pg_search(@adminly_query.keywords)
+        if @adminly_query.keywords?
+          if resources.respond_to?(:pg_search)
+            resources = resources.pg_search(@adminly_query.keywords)
+          else
+            term, column = @adminly_query.keywords
+            if column.nil?
+              raise ArgumentError, '<term>:<column> format expected for keywords query'
+            end
+            resources = like(resources, term, column)
+          end
         end
 
         resources = resources.includes(@adminly_query.includes) if @adminly_query.includes.any?
         resources = resources.order(@adminly_query.order) if @adminly_query.order?
         resources = resources.page(@adminly_query.page).per(@adminly_query.per_page)
-        
+
         resources = group_by(resources, @adminly_query.group_by) if @adminly_query.group_by.any?
-        resources = aggregate(resources, @adminly_query.select_fields) if @adminly_query.select_fields.any?        
+        resources = aggregate(resources, @adminly_query.select_fields) if @adminly_query.select_fields.any?
 
         resources
       end
@@ -71,10 +79,14 @@ module Adminly
             resources.send(agg, field)
           else
             resources.select(field)
-          end 
-        end        
+          end
+        end
       end
-          
-    end    
+
+      def like(resources, term, column)
+        column = resources.model.arel_table[column]
+        resources.where(column.matches("%#{term}%"))
+      end
+    end
   end
 end
