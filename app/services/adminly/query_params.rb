@@ -20,23 +20,23 @@ module Adminly
     BOOLEANS = ["true","false", "null"]
 
     DATE_PERIODS = [
-      :second, 
-      :minute, 
-      :hour, 
-      :day, 
-      :week, 
-      :month, 
-      :quarter, 
+      :second,
+      :minute,
+      :hour,
+      :day,
+      :week,
+      :month,
+      :quarter,
       :year
     ]
-    
+
     AGGREGATIONS = {
-      avg: "average",  
+      avg: "average",
       sum: "sum",
       min: "minimum",
       max: "maximum",
       count: "count"
-    }   
+    }
 
     # QueryParams is a ruby Class which parses URL parameters
     # passed to a Rails Controller into attributes used to query models
@@ -47,7 +47,11 @@ module Adminly
     end
 
     def keywords
-      @params[:keywords]
+      if @params[:keywords]&.include?(DELIMITER)
+        @params[:keywords].split(DELIMITER)
+      else
+        @params[:keywords]
+      end
     end
 
     def select_fields
@@ -148,7 +152,7 @@ module Adminly
         includes: includes,
         keywords: keywords,
         order: order,
-        page: page,        
+        page: page,
         per_page: per_page,
         select_fields: select_fields,
         sort_by: sort_by,
@@ -188,6 +192,6 @@ module Adminly
     def select?
       select_fields ? true : false
     end
-    
+
   end
 end
