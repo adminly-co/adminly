@@ -75,9 +75,9 @@ module Adminly
         if resources.respond_to?(:pg_search)
           resources = resources.pg_search(@adminly_query.keywords)
         else
-          term, column = @adminly_query.keywords
+          column, term = @adminly_query.keywords
           if column.nil?
-            raise ArgumentError, '<term>:<column> format expected for keywords query'
+            raise ArgumentError, '<column>:<term> format expected for keywords query'
           end
           resources = like(resources, term, column)
         end
@@ -88,6 +88,6 @@ module Adminly
         resources.where(column.matches("%#{term}%"))
       end
     end
-    
+
   end
 end
