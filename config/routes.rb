@@ -7,7 +7,7 @@ Adminly::Engine.routes.draw do
 
   post '/query' => 'api#query'
 
-  get '/:table_name' => 'api#index'
+  get '/:table_name' => 'api#index', defaults: { format: :json }
   get '/:table_name/:id' => 'api#show'
   put '/:table_name/:id' => 'api#update'
   post '/:table_name' => 'api#create'
