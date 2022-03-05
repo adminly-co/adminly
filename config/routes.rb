@@ -8,11 +8,11 @@ Adminly::Engine.routes.draw do
   post '/query' => 'api#query'
 
   get '/:table_name' => 'api#index', defaults: { format: :json }
-  get '/:table_name/:id' => 'api#show', defaults: { format: :json }
-  put '/:table_name/:id' => 'api#update', defaults: { format: :json }
-  post '/:table_name' => 'api#create', defaults: { format: :json }
-  delete '/:table_name/:id' => 'api#destroy', defaults: { format: :json }
+  get '/:table_name/:id' => 'api#show'
+  put '/:table_name/:id' => 'api#update'
+  post '/:table_name' => 'api#create'
+  delete '/:table_name/:id' => 'api#destroy'
 
-  post '/:table_name/update_many' => 'api#update_many', defaults: { format: :json }
-  post '/:table_name/delete_many' => 'api#delete_many', defaults: { format: :json }
+  post '/:table_name/update_many' => 'api#update_many'
+  post '/:table_name/delete_many' => 'api#delete_many'
 end
