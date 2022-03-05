@@ -12,10 +12,18 @@ module Adminly
 
       resources = adminly_scope(resources)
 
-      render json: {
-        data: adminly_serialize(resources, includes: @adminly_query.includes),
-        meta: adminly_meta(resources)
-      }
+      respond_to do |format|
+        format.json do
+          render json: {
+            data: adminly_serialize(resources, includes: @adminly_query.includes),
+            meta: adminly_meta(resources)
+          }
+        end
+
+        format.csv do
+          send_data resources.to_csv, filename: "#{resources.table_name}-#{Date.today}.csv"
+        end
+      end
     end
 
     def show
@@ -88,10 +96,10 @@ module Adminly
 
     def load_adminly_record
       @adminly_record = Adminly::Record.to_active_record(
-        params[:table_name], 
+        params[:table_name],
         belongs_to: @adminly_query.belongs_to,
-        has_many: @adminly_query.has_many,        
-        habtm: @adminly_query.habtm        
+        has_many: @adminly_query.has_many,
+        habtm: @adminly_query.habtm
       )
     end
 
@@ -107,7 +115,7 @@ module Adminly
       params
         .require(:query)
         .permit(:sql)
-    end 
+    end
 
   end
 end

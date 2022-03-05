@@ -1,18 +1,20 @@
-module Adminly 
-  class Record < ApplicationRecord   
-    include PgSearch::Model 
-    
-    self.abstract_class = true    
+require 'csv'
+
+module Adminly
+  class Record < ApplicationRecord
+    include PgSearch::Model
+
+    self.abstract_class = true
 
     def self.to_active_record(table_name, belongs_to: nil, has_many: nil, habtm: nil)
 
       # Create an Abstract Active Record class and
       # assign the table name from params
       class_name = table_name.singularize.capitalize
-                  
-      Object.send(:remove_const, class_name) if Object.const_defined? class_name                   
+
+      Object.send(:remove_const, class_name) if Object.const_defined? class_name
       klass = Object.const_set class_name, Class.new(Adminly::Record)
-      
+
       #klass.table_name = table_name.downcase.pluralize
       klass.table_name = table_name.downcase
 
@@ -27,7 +29,7 @@ module Adminly
       klass.reset_column_information
 
       # Build the model associations from the params
-      klass.build_associations(          
+      klass.build_associations(
         belongs_to: belongs_to,
         has_many: has_many,
         habtm: habtm
@@ -41,27 +43,27 @@ module Adminly
       klass
     end
 
-    def self.build_associations(belongs_to: nil, has_many: nil,  habtm: nil)        
-      
-      belongs_to&.each do |table|         
-        table_name, foreign_key = table.split(":")        
-        foreign_key = table_name.singularize.downcase + '_id' if foreign_key.nil?          
+    def self.build_associations(belongs_to: nil, has_many: nil,  habtm: nil)
+
+      belongs_to&.each do |table|
+        table_name, foreign_key = table.split(":")
+        foreign_key = table_name.singularize.downcase + '_id' if foreign_key.nil?
         klass = Adminly::Record.to_active_record(table_name)
-        self.belongs_to table_name.singularize.downcase.to_sym, class_name: klass.name, foreign_key: foreign_key        
-      end 
+        self.belongs_to table_name.singularize.downcase.to_sym, class_name: klass.name, foreign_key: foreign_key
+      end
 
-      has_many&.each do |table|         
-        table_name, foreign_key = table.split(":")    
-        foreign_key = self.table_name.singularize.downcase + '_id' if foreign_key.nil?       
-        klass = Adminly::Record.to_active_record(table_name)         
+      has_many&.each do |table|
+        table_name, foreign_key = table.split(":")
+        foreign_key = self.table_name.singularize.downcase + '_id' if foreign_key.nil?
+        klass = Adminly::Record.to_active_record(table_name)
         self.has_many table_name.downcase.to_sym, class_name: klass.name, foreign_key: foreign_key
-      end 
+      end
 
-      habtm&.each do |table|         
-        table_name, join_table = table.split(":")                        
-        klass = Adminly::Record.to_active_record(table_name)         
+      habtm&.each do |table|
+        table_name, join_table = table.split(":")
+        klass = Adminly::Record.to_active_record(table_name)
         self.has_and_belongs_to_many table_name.downcase.to_sym, class_name: klass.name, join_table: join_table
-      end 
+      end
 
     end
 
@@ -87,5 +89,18 @@ module Adminly
       self.columns.map(&:name)
     end
 
-  end 
+    def self.to_csv
+      header_written = false
+      CSV.generate(headers: true) do |csv|
+        current_scope.find_each do |record|
+          unless header_written
+            csv << record.attributes.keys
+            header_written = true
+          end
+
+          csv << record.attributes.values
+        end
+      end
+    end
+  end
 end
