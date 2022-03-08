@@ -12,8 +12,12 @@ module Adminly
       # assign the table name from params
       class_name = table_name.singularize.capitalize
 
-      Object.send(:remove_const, class_name) if Object.const_defined? class_name
-      klass = Object.const_set class_name, Class.new(Adminly::Record)
+      if Object.const_defined? class_name
+        # Object.send(:remove_const, class_name) 
+        klass = class_name.constantize
+      else         
+        klass = Object.const_set class_name, Class.new(Adminly::Record)
+      end 
 
       #klass.table_name = table_name.downcase.pluralize
       klass.table_name = table_name.downcase
@@ -26,7 +30,7 @@ module Adminly
       end
 
       # Clear the cache to to support live migrations
-      klass.reset_column_information
+      # klass.reset_column_information
 
       # Build the model associations from the params
       klass.build_associations(
