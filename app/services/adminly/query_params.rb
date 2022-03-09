@@ -13,11 +13,21 @@ module Adminly
       "lt": "<",
       "lte": "<=",
       "eq": "=",
-      "neq": "!="
+      "neq": "!=",
+      "in": "in",
     }
 
     DATE_REGEX = /\d{4}-\d{2}-\d{2}/
     BOOLEANS = ["true","false", "null"]
+
+    # comma not inside square braces
+    FILTER_DELIMITER = /
+        ,         # match comma
+        (?!       # if not followed by
+        [^\[]*    # anything except an open brace [
+        \]        # followed by a closing brace ]
+        )         # end lookahead
+    /x
 
     DATE_PERIODS = [
       :second,
@@ -112,7 +122,7 @@ module Adminly
     def filters
       filters = []
       if @params[:filters]
-        @params[:filters].split(',').each do |filter_param|
+        @params[:filters].split(FILTER_DELIMITER).each do |filter_param|
           filters << format_filter(filter_param)
         end
       end
@@ -165,15 +175,13 @@ module Adminly
       rel = "eq" unless OPERATORS.keys.include?(rel.to_sym)
       operator = OPERATORS[rel.to_sym] || '='
 
-      if value =~ DATE_REGEX
-        value = DateTime.parse(value)
-      elsif BOOLEANS.include?(value&.downcase)
-        value = true if value.downcase === "true"
-        value = false if value.downcase === "false"
-        value = nil if value.downcase === "null"
+      if rel == 'in'
+        value = JSON.parse(value).map { |v| transform_value(v) }
+      else
+        value = transform_value(value)
       end
 
-      condition = "#{field} #{operator} ?"
+      condition = "#{field} #{operator} (?)"
       [condition, value]
     end
 
@@ -193,5 +201,18 @@ module Adminly
       select_fields ? true : false
     end
 
+    private
+
+    def transform_value(value)
+      if value =~ DATE_REGEX
+        value = DateTime.parse(value)
+      elsif value.respond_to?(:downcase) && BOOLEANS.include?(value&.downcase)
+        value = true if value.downcase === "true"
+        value = false if value.downcase === "false"
+        value = nil if value.downcase === "null"
+      end
+
+      value
+    end
   end
 end
