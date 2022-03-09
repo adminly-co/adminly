@@ -74,7 +74,7 @@ module Adminly
     def self.build_pg_search_scope
       self.pg_search_scope(
         :pg_search,
-        against: self.searchable_fields,
+        against: self.table_columns,
         using: {
           tsearch: {
             prefix: true,
@@ -88,7 +88,7 @@ module Adminly
       name && name.singularize == name
     end
 
-    def self.searchable_fields
+    def self.table_columns
       return [] if self.table_name.nil?
       self.columns.map(&:name)
     end

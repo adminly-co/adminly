@@ -108,7 +108,9 @@ module Adminly
     end
 
     def adminly_params
-      params.require(params[:table_name]).permit!
+      params
+        .require(params[:table_name])
+        .permit(@adminly_record.table_columns)
     end
 
     def sql_query_params
