@@ -48,6 +48,16 @@ module Adminly
       count: "count"
     }
 
+    DYNAMIC_FILTER_VALUES = {
+      '1_day_ago' => -> { 1.day.ago },
+      '7_days_ago' => -> { 7.days.ago },
+      '14_days_ago' => -> { 14.days.ago },
+      '30_days_ago' => -> { 30.days.ago },
+      '60_days_ago' => -> { 60.days.ago },
+      '90_days_ago' => -> { 90.days.ago },
+      'current_year' => -> { Time.current.year },
+    }
+
     # QueryParams is a ruby Class which parses URL parameters
     # passed to a Rails Controller into attributes used to query models
     attr_accessor :params
