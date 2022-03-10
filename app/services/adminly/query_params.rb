@@ -111,11 +111,11 @@ module Adminly
     end
 
     def includes
-      sanitize = proc { |rel| rel.split(":").first }
+      field_name = proc { |rel| rel.split(":").first }
 
-      includes_bt = belongs_to&.map(&sanitize)&.map(&:singularize)
-      includes_hm = has_many&.map(&sanitize)
-      includes_habtm = habtm&.map(&sanitize)
+      includes_bt = belongs_to&.map(&field_name)
+      includes_hm = has_many&.map(&field_name)
+      includes_habtm = habtm&.map(&field_name)
       [includes_bt, includes_hm, includes_habtm].flatten.compact
     end
 

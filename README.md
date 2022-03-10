@@ -208,40 +208,31 @@ supported are belongs_to, has_many, and has_and_belongs_to_many.
 To include a belongs_to table association, use the belongs_to query param:
 
 ```
-GET /adminly/api/books?belongs_to=<table_name>:<foreign_key>
+GET /adminly/api/books?belongs_to=<name>:<foreign_table>:<foreign_key>
 ```
+
+The `name` is a new field that will be included and part of the response during serialization, 
+the `foreign_table` is the foreign table, and `foreign_key` is the foreign key necessary to 
+join the tables. 
+
 Example: 
 ```
-GET /adminly/api/books?belongs_to=authors:author_id
+GET /adminly/api/books?belongs_to=author:authors:author_id
 ```
 
 If the foreign key is omitted, Adminly will guess the foreign key field using Rails conventions, namely 
 that the foreign key is the singular form of the table name followed by `_id`
 
 #### Has many 
-
 To include a has_many table association, use the `has_many` parameter:
 
 ```
-GET /adminly/api/books?has_many=<table_name>:<foreign_key> 
+GET /adminly/api/books?has_many=<name>:<foreign_table>:<foreign_key> 
 ```
 
 Example
 ```
-GET /adminly/api/books?has_many=reviews:book_id 
-```
-
-#### Has and belongs to many 
-
-There is also some limited-support for has_and_belongs_to_many associations using a join table with the `habtm` parameter:
-
-```
-GET /adminly/api/books?has_many=<table_name>:<join_table> 
-```
-
-Example
-```
-GET /adminly/api/books?habtm=readers:books_readers
+GET /adminly/api/books?has_many=reviews:book_reviews:book_id 
 ```
 
 ### Create
