@@ -13,7 +13,6 @@ module Adminly
       class_name = table_name.singularize.capitalize
 
       if Object.const_defined? class_name
-        # Object.send(:remove_const, class_name) 
         klass = class_name.constantize
       else         
         klass = Object.const_set class_name, Class.new(Adminly::Record)
