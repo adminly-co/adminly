@@ -13,7 +13,6 @@ module Adminly
       class_name = table_name.singularize.capitalize
 
       if Object.const_defined? class_name
-        # Object.send(:remove_const, class_name) 
         klass = class_name.constantize
       else         
         klass = Object.const_set class_name, Class.new(Adminly::Record)
@@ -50,23 +49,23 @@ module Adminly
     def self.build_associations(belongs_to: nil, has_many: nil,  habtm: nil)
 
       belongs_to&.each do |table|
-        table_name, foreign_key = table.split(":")
+        name, table_name, foreign_key = table.split(":")
         foreign_key = table_name.singularize.downcase + '_id' if foreign_key.nil?
         klass = Adminly::Record.to_active_record(table_name)
-        self.belongs_to table_name.singularize.downcase.to_sym, class_name: klass.name, foreign_key: foreign_key, optional: true
+        self.belongs_to name.to_sym, class_name: klass.name, foreign_key: foreign_key, optional: true
       end
 
       has_many&.each do |table|
-        table_name, foreign_key = table.split(":")
+        name, table_name, foreign_key = table.split(":")
         foreign_key = self.table_name.singularize.downcase + '_id' if foreign_key.nil?
         klass = Adminly::Record.to_active_record(table_name)
-        self.has_many table_name.downcase.to_sym, class_name: klass.name, foreign_key: foreign_key
+        self.has_many name.to_sym, class_name: klass.name, foreign_key: foreign_key
       end
 
       habtm&.each do |table|
-        table_name, join_table = table.split(":")
+        name, table_name, join_table = table.split(":")
         klass = Adminly::Record.to_active_record(table_name)
-        self.has_and_belongs_to_many table_name.downcase.to_sym, class_name: klass.name, join_table: join_table
+        self.has_and_belongs_to_many name.to_sym, class_name: klass.name, join_table: join_table
       end
 
     end
