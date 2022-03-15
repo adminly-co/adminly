@@ -214,7 +214,9 @@ module Adminly
     private
 
     def transform_value(value)
-      if value =~ DATE_REGEX
+      if DYNAMIC_FILTER_VALUES.has_key?(value)
+        value = DYNAMIC_FILTER_VALUES[value].()
+      elsif value =~ DATE_REGEX
         value = DateTime.parse(value)
       elsif value.respond_to?(:downcase) && BOOLEANS.include?(value&.downcase)
         value = true if value.downcase === "true"
