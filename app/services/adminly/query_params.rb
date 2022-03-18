@@ -186,7 +186,7 @@ module Adminly
       operator = OPERATORS[rel.to_sym] || '='
 
       if rel == 'in'
-        value = JSON.parse(value).map { |v| transform_value(v) }
+        value = value[1...-1].split(',').map { |v| transform_value(v) }
       else
         value = transform_value(value)
       end
