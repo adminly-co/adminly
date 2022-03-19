@@ -17,19 +17,17 @@ module Adminly
       else         
         klass = Object.const_set class_name, Class.new(Adminly::Record)
       end 
-
-      #klass.table_name = table_name.downcase.pluralize
+      
       klass.table_name = table_name.downcase
-
+      # Clear the cache to to support live migrations
+      klass.reset_column_information
+      
       # Define a default Pundit policy class for this model
       if Object.const_defined? "#{class_name}Policy"
         policy = "#{class_name}Policy".constantize
       else
         policy = Object.const_set "#{class_name}Policy", Class.new(ApplicationPolicy)
-      end
-
-      # Clear the cache to to support live migrations
-      # klass.reset_column_information
+      end      
 
       # Build the model associations from the params
       klass.build_associations(
